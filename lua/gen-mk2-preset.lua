@@ -44,7 +44,7 @@ function print_as_nums(preset)
     byte(pressure_to_num[preset.pressure])
     byte(preset.full_level and 0 or 1)
     byte((preset.pad_mode == "momentary") and 0 or 1)
-    
+
     -- Pads.
     for _, p in ipairs(preset.pad) do
         byte(p.note)
@@ -64,8 +64,6 @@ function print_as_nums(preset)
     end
 end
 
-
 -- Read the file mentioned on the command line as a preset and then print
 -- it out as a series of integers.
 print_as_nums(dofile(arg[1]))
-
