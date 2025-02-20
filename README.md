@@ -157,9 +157,7 @@ f0 47 7f 75 63 00 3a pp <preset data> f7
 pp is the preset number requested and the preset data is as follows:
 
 * channel number
-
 * pad data (8 pads)
-
 * knob data (8 knobs)
 
 For each pad: note number, program change number, controller number,
