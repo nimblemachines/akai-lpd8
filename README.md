@@ -158,7 +158,7 @@ f0 47 7f 75 63 00 3a pp <preset data> f7
 * knob data (8 knobs)
 
 For each pad: note number, program change number, controller number,
-toggle/momentary flag (4 bytes total).
+behavior style (0 = momentary, 1 = toggle) (4 bytes total).
 
 For each knob: controller number, range (low followed by high) (3 bytes
 total).
