@@ -33,7 +33,7 @@ both of the LPD8 devices, those are the "get preset" and "set preset"
 messages. This is what the next sections will concentrate on, starting with
 the newer device, the LPD8 mk2.
 
-### LPD8 mk2 communications protocol
+### LPD8 mk2 communication protocol
 
 There are two commands: get preset (03), and set preset (01).
 
@@ -126,7 +126,7 @@ and [sysex
 capture](https://raw.githubusercontent.com/stephensrmmartin/lpd8mk2/refs/heads/master/docs/sysex_captures.md)
 files.
 
-### LPD8 (original) communications protocol
+### LPD8 (original) communication protocol
 
 I don't have an original LPD8, so I can't vouch for these results or test
 them. All of this data comes from [Benjamin
