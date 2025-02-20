@@ -50,8 +50,8 @@
 #X obj 808 317 makefilename preset-%d.txt;
 #X obj 247 397 symbol suffix;
 #X obj 335 370 r filename;
-#X msg 247 430 \; sysex-in write ~/puredata/akai-lpd8-mk2-\$1;
 #X text 769 194 generic akai sysex: who are you? (MIDI Machine Control "device enquiry" message);
+#X msg 247 430 \; sysex-in write ~/akai-lpd8/lpd8-mk2-get-\$1;
 #X connect 0 0 10 0;
 #X connect 1 0 8 0;
 #X connect 2 0 0 0;
@@ -99,5 +99,5 @@
 #X connect 41 0 4 0;
 #X connect 47 0 46 0;
 #X connect 48 0 45 0;
-#X connect 49 0 51 0;
+#X connect 49 0 52 0;
 #X connect 50 0 49 1;
