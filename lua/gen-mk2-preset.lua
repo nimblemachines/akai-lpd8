@@ -38,7 +38,21 @@ pressure_to_num = {
     poly = 2,
 }
 
+function sysex_start(preset)
+    for _, d in ipairs { 240, 71, 127, 76, 1 } do
+        print(d)
+    end
+    big(165)        -- correct data payload length; seems to work!
+    byte(preset)
+end
+
+function sysex_end()
+    print(247)
+end
+
 function print_as_nums(preset)
+    sysex_start(0)
+
     -- Global settings first.
     byte(preset.channel - 1)
     byte(pressure_to_num[preset.pressure])
@@ -62,6 +76,8 @@ function print_as_nums(preset)
         byte(k.range[1])
         byte(k.range[2])
     end
+
+    sysex_end()
 end
 
 -- Read the file mentioned on the command line as a preset and then print
