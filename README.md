@@ -77,12 +77,9 @@ The four bytes of global settings are as follows:
 
 * global channel (0 to 15, representing channel 1 to 16, in the usual MIDI
   fashion)
-
 * pressure messages (0 = off, 1 = channel, 2 = polyphonic)
-
 * full level (0 = on, 1 = off). On means note velocities and controller values
   are only 0 or 127. Off means the normal range of 0 to 127.
-
 * pad mode (0 = momentary, 1 = toggle). In _momentary_ mode the pad sends
   a note-on when pressed, followed by a note-off when the pad is released. In
 _toggle_ mode the pad sends a note-on when pressed, and does nothing until the
@@ -94,15 +91,11 @@ _momentary_ mode.
 Each pad has the following settings:
 
 * note number (one byte)
-
 * controller number (one byte)
-
 * program change number (one byte). It seems that 00 means program 1, 01
   means program 2, etc. Like channel numbers.
-
 * channel number. 0 to 15 to specify channel 1 to 16, or 16 to use the global
   channel number (which was set by the first byte of the preset data).
-
 * two RGB values: off (not pressed) and on (pressed). Each RGB value is
   a 24-bit color. Each 8 bit R, G, and B component is encoded like the data
 payload length and thus takes _two_ bytes: the first byte contains the 8th
@@ -111,10 +104,8 @@ bit; the second byte contains the low 7 bits.
 Each knob has the following settings:
 
 * controller number (one byte)
-
 * channel number (like with the pads, this takes values from 0 to 15 to
   specify a channel, or 16 to specify the global channel).
-
 * range (two bytes: low, then high)
 
 Thanks are due to [Stephen Martin](https://github.com/stephensrmmartin) and his
