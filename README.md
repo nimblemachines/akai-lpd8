@@ -157,7 +157,7 @@ mode (0 = momentary, 1 = toggle) (4 bytes total).
 For each knob: controller number, range (low followed by high) (3 bytes
 total).
 
-The 00 0a is the data payload length: 58 bytes.
+The 00 3a is the data payload length: 58 bytes.
 
 The set preset is exactly like the get preset, except the 63 is replaced by
 61 and the preset number and preset data is sent to, rather than received
