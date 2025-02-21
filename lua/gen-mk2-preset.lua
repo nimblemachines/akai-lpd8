@@ -2,16 +2,19 @@
 -- integers (representing bytes) that can be sent, eg by puredata, to the
 -- device.
 
--- The generated file does *not* include the system exclusive (sysex)
--- header necessary for the device to recognize this as a preset. That job
--- is done externally - again, eg, by puredata.
+-- The generated file includes the system exclusive (sysex) framing
+-- necessary for the device to recognize this as a preset (in particular,
+-- for the "temporary" preset, preset 0). External tools are free to strip
+-- off or ignore the framing (the first 8 and last 1 byte).
 
 -- Output a MIDI byte - which really means a 7-bit value.
 function byte(n)
     print(n & 127)
 end
 
--- Output as two 7-bit bytes a value that is potentially larger than 127.
+-- Output as two 7-bit bytes, most-significant first, a value that is
+-- potentially larger than 127.
+
 function big(n)
     byte(n >> 7)
     byte(n)
