@@ -3,9 +3,9 @@
 I wanted to gather in one place documentation of the communication protocols
 for the Akai LPD8 (original) and Akai LPD8 mk2.
 
-I am also trying to write some simple tools – using [puredata
-(Pd)](https://msp.ucsd.edu/Pd_documentation/) and [Lua](https://www.lua.org/)
-– to read and write the presets.
+I am also trying to write some simple tools – using
+[puredata](https://msp.ucsd.edu/Pd_documentation/) (Pd) and
+[Lua](https://www.lua.org/) – to read and write the presets.
 
 Since most people reading this probably aren't interested in the protocols,
 let's start with the tools.
