@@ -16,33 +16,14 @@ function read_preset()
     return p
 end
 
-function print_p_as_nums(p)
-    io.write "p = { "
-    for _, n in ipairs(p) do
-        io.write(fmt("%d, ", n))
-    end
-    io.write "}\n"
-end
-
--- Pressure takes three values:
---   0 = none
---   1 = channel
---   2 = poly
-
-pressure_to_num = {
-    none = 0,
-    channel = 1,
-    poly = 2,
-}
-
 num_to_pressure = {
     [0] = "none",
     [1] = "channel",
     [2] = "poly",
 }
 
--- Combine two bytes, representing a 14-bit value, into a single number.
--- The most significant byte is first.
+-- Combine two bytes, which together represent a 14-bit value, into a
+-- single number. The most significant byte is first.
 
 function combine(p, i)
     return p[i] * 128 + p[i+1]
@@ -56,10 +37,10 @@ function parse_rgb(p, i)
     return (r << 16) + (g << 8) + b
 end
 
--- If byte describing channel is less than 16, assume it's a valid channel
--- number (0 to 15), so add one and return it; otherwise, it describes the
--- "global" so return nil to represent that we are not overriding the
--- global setting.
+-- If the byte representing a channel number is less than 16, add one and
+-- return it; otherwise, it represents the use of the "global" channel, so
+-- return a string to indicate this.
+
 function parse_channel(ch)
     return (ch < 16) and (ch + 1) or "global"
 end
@@ -68,9 +49,7 @@ end
 -- and new index.
 --
 -- Format of a pad: note number, controller number, program change number,
--- channel, followed by two RGB values.
--- If channel == 16, this means to use the "global" channel; in this case,
--- leave channel undefined (nil).
+-- channel, two RGB values.
 
 function parse_pad(p, i)
     return {
@@ -86,8 +65,7 @@ end
 -- and new index.
 --
 -- Format of a knob: controller number, channel, range (low, high).
--- If channel == 16, this means to use the "global" channel; in this case,
--- leave channel undefined (nil).
+
 function parse_knob(p, i)
     return {
         controller = p[i],

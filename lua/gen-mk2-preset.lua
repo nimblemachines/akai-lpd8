@@ -1,10 +1,10 @@
 -- From a Lua table representing an LPD8 mk2 preset, generate a file of
--- integers (representing bytes) that can be sent, eg by pure data, to the
+-- integers (representing bytes) that can be sent, eg by puredata, to the
 -- device.
 
 -- The generated file does *not* include the system exclusive (sysex)
 -- header necessary for the device to recognize this as a preset. That job
--- is done externally - again, eg, by pure data.
+-- is done externally - again, eg, by puredata.
 
 -- Output a MIDI byte - which really means a 7-bit value.
 function byte(n)
