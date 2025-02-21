@@ -3,9 +3,9 @@
 I wanted to gather in one place documentation of the communication protocols
 for the Akai LPD8 (original) and Akai LPD8 mk2.
 
-I am also trying to write some simple tools - using [puredata
+I am also trying to write some simple tools – using [puredata
 (Pd)](https://msp.ucsd.edu/Pd_documentation/) and [Lua](https://www.lua.org/)
-- to read and write the presets.
+– to read and write the presets.
 
 Since most people reading this probably aren't interested in the protocols,
 let's start with the tools.
@@ -26,7 +26,7 @@ through to Linux, but the Linux kernel failed to recognize it. I think there
 are drivers missing from the kernel used by WSL. While I have already
 successfully compiled and used my own Linux kernel for WSL (I wanted to add
 a USB serial device), I could not quickly figure out how to add the drivers
-I needed, so I looked for another approach.
+I needed for MIDI support, so I looked for another approach.
 
 I knew about puredata (aka Pd), and I used its predecessor Max decades ago;
 there is a Windows version, and installing it was easy. It's a bit clunky, and
@@ -60,12 +60,12 @@ of experiments. If you press the message boxes numbered 1 through 4, where it
 says "get preset #" in the middle-right of the patch, it will request each
 patch from the device and store it in a file. The patch assumes that this
 project lives directly in your home directory; the destination file for each
-patch is `~/akai-lpd8/lpd8-mk2-get-preset-<n>.txt`.
+preset is `~/akai-lpd8/lpd8-mk2-get-preset-<n>.txt`.
 
-This file contains a sysex message, encoded as a series of integers. This is
-also the form consumed by `puredata/set-presets.pd`, which is used to send
-presets to the device. But first you have to create one - assuming the default
-factory four don't meet your needs.
+Each received preset file contains a sysex message, encoded as a series of
+integers. This is also the form consumed by `puredata/set-presets.pd`, which
+is used to send presets to the device. But first you have to create one
+– assuming the default factory four don't meet your needs.
 
 The second set of tools are two Lua scripts for converting between streams of
 ints and relatively friendly Lua tables:
@@ -117,15 +117,15 @@ of the protocols for all of their devices.
 There are essentially only two variants: a universal "tell me who you are",
 and a basic _structure_ for model-specific system exclusives.
 
-The first one - who are you? - is the MIDI Machine Control (MMC) "device
+The first one – who are you? – is the MIDI Machine Control (MMC) "device
 enquiry" message, and is encoded like this:
 
 ```
 f0 7e 00 06 01 f7
 ```
 
-The details of the response aren't that interesting - with one exception: the
-sixth and seventh bytes - offsets 5 and 6 - are the manufacturer's ID (47 in
+The details of the response aren't that interesting – with one exception: the
+sixth and seventh bytes – offsets 5 and 6 – are the manufacturer's ID (47 in
 the case of Akai) and the model ID (4c for the LPD8 mk2; 75 for the original
 LPD8).
 
@@ -144,6 +144,7 @@ bb  Low 7 bits of payload length
 ..  Payload data
 ..
 f7  End system exclusive
+```
 
 For both of the LPD8 devices, those are the "get preset" and "set preset"
 messages. This is what the next sections will concentrate on, starting with
@@ -170,7 +171,7 @@ The LPD8 mk2 answers the get preset sysex with a sysex message of its own:
 f0 47 7f 4c 03 01 29 pp <preset data> f7
 ```
 
-The 01 29 encodes the payload data length - it counts everything after the
+The 01 29 encodes the payload data length – it counts everything after the
 length and before the f7. Because this is MIDI, any value greater than 7f
 has to be encoded in two bytes: the first byte contains the high bit (ie, its
 value is either 00 or 01), and the second byte contains the low 7 bits.
