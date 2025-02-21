@@ -105,6 +105,7 @@ function print_as_lua(preset)
     local out = print
 
     out "-- This is a preset for the Akai LPD8 mk2."
+    out "-- See https://github.com/nimblemachines/akai-lpd8 for details."
     out "return {"
 
     -- Even though we parsed them into a separate table, let's output the

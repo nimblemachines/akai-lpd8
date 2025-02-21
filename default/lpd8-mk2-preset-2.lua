@@ -1,4 +1,5 @@
 -- This is a preset for the Akai LPD8 mk2.
+-- See https://github.com/nimblemachines/akai-lpd8 for details.
 return {
   channel = 1, pressure = "channel", full_level = false, pad_mode = "momentary",
   pad = {

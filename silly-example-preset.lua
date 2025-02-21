@@ -1,4 +1,5 @@
 -- This is a preset for the Akai LPD8 mk2.
+-- See https://github.com/nimblemachines/akai-lpd8 for details.
 
 -- I copied the default preset 3 and added some wacky colors and unusual
 -- channel settings.
