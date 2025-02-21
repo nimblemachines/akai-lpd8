@@ -19,9 +19,9 @@ editing, and archiving by _humans_.
 
 I initially wanted to use [muforth](https://muforth.dev/) for the reading and
 writing process, as it's a nice tool for this kind of work. As I have been
-using [WSL (the Windows Subsystem for
-Linux)](https://learn.microsoft.com/en-us/windows/wsl/about) for a lot of my
-work lately, I connected the device to my Windows 11 machine and passed it
+using the [Windows Subsystem for
+Linux](https://learn.microsoft.com/en-us/windows/wsl/about) (WSL) for a lot of
+my work lately, I connected the device to my Windows 11 machine and passed it
 through to Linux, but the Linux kernel failed to recognize it. I think there
 are drivers missing from the kernel used by WSL. While I have already
 successfully compiled and used my own Linux kernel for WSL (I wanted to add
@@ -134,7 +134,7 @@ all have exactly the same form:
 
 ```
 f0  Begin system exclusive
-47  Akai manufacturer ID
+47  Manufacturer ID (Akai)
 7f  Broadcast (any connected device with correct model ID)
 ii  Model ID (this is 75 for LPD8 and 4c for LPD8 mk2)
 mm  Message type (in our case, get preset or set preset)
