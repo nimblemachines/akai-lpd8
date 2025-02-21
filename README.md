@@ -3,15 +3,116 @@
 I wanted to gather in one place documentation of the communication protocols
 for the Akai LPD8 (original) and Akai LPD8 mk2.
 
-I am also trying to write some simple tools - most likely using [puredata
-(Pd)](https://msp.ucsd.edu/Pd_documentation/), [Lua](https://www.lua.org/),
-and [muforth](https://muforth.dev/) - to read and write the presets.
+I am also trying to write some simple tools - using [puredata
+(Pd)](https://msp.ucsd.edu/Pd_documentation/) and [Lua](https://www.lua.org/)
+- to read and write the presets.
+
+Since most people reading this probably aren't interested in the protocols,
+let's start with the tools.
+
+## Tools of the trade
+
+I wanted to be able to do three things: read presets from the device, write
+presets to the device, and convert between the stream-of-bytes format that the
+device wants to exchange and something more suitable to reading, writing,
+editing, and archiving by _humans_.
+
+I initially wanted to use [muforth](https://muforth.dev/) for the reading and
+writing process, as it's a nice tool for this kind of work. As I have been
+using [WSL (the Windows Subsystem for
+Linux)](https://learn.microsoft.com/en-us/windows/wsl/about) for a lot of my
+work lately, I connected the device to my Windows 11 machine and passed it
+through to Linux, but the Linux kernel failed to recognize it. I think there
+are drivers missing from the kernel used by WSL. While I have already
+successfully compiled and used my own Linux kernel for WSL (I wanted to add
+a USB serial device), I could not quickly figure out how to add the drivers
+I needed, so I looked for another approach.
+
+I knew about puredata (aka Pd), and I used its predecessor Max decades ago;
+there is a Windows version, and installing it was easy. It's a bit clunky, and
+I had to mess around to make the interface something other than unreadably
+tiny, but I got it working, plugged in the LDP8, and was quickly seeing MIDI
+when using Pd's "Test audio and MIDI" patch.
+
+Within a day of messing around I was able to send a sysex message to the
+device and read one of the presets. After a second day I managed to send a sysex
+to _set_ a preset. On the third day I wrote some Lua code to convert between
+numeric and human-readable formats.
+
+The tools are simple, perhaps a bit primitive, but eminently useful. And,
+after all, this isn't something you do every day. You figure out how you
+intend to use the device, you write a few presets, program them, and then
+forget about it.
+
+The Pd code lives in the `puredata/` subdirectory, and consists of three patch
+files:
+
+* `puredata/input-test.pd`
+* `puredata/sysex-in-experiments.pd`
+* `puredata/set-presets.pd`
+
+This is probably the order you will want to use them in. `input-test` is great
+for testing that Pd is getting input. You can see which channels the LPD8 is
+using, which note or controller is being used by a pad or knob, etc.
+
+`sysex-in-experiments` should perhaps be renamed, since it is past the point
+of experiments. If you press the message boxes numbered 1 through 4, where it
+says "get preset #" in the middle-right of the patch, it will request each
+patch from the device and store it in a file. The patch assumes that this
+project lives directly in your home directory; the destination file for each
+patch is `~/akai-lpd8/lpd8-mk2-get-preset-<n>.txt`.
+
+This file contains a sysex message, encoded as a series of integers. This is
+also the form consumed by `puredata/set-presets.pd`, which is used to send
+presets to the device. But first you have to create one - assuming the default
+factory four don't meet your needs.
+
+The second set of tools are two Lua scripts for converting between streams of
+ints and relatively friendly Lua tables:
+
+* `lua/parse-mk2-preset.lua`
+* `lua/gen-mk2-preset.lua`
+
+Parse turns a stream-of-ints into Lua; gen goes the other way.
+
+As an example, try the following. Assuming you have used Pd to get the four
+factory presets, you can convert one and print it out, like this:
+
+```
+lua lua/parse-mk2-preset.lua < lpd8-mk2-get-preset-<n>.txt
+```
+(Note the redirected input.)
+
+It should print out a nicely-formatted version of the preset. By redirecting
+the output to a file and editing the resulting Lua code, you now have a way to
+easily create a set of custom presets (and check them into version control or
+whatever).
+
+Once you have a preset you like in Lua form, just do
+
+```
+lua lua/gen-mk2-preset.lua path/to/preset.lua > lpd8-mk2-set-preset-<n>.txt
+```
+
+(Note that, in this case, the input is _not_ redirected.)
+
+n can range from 0 to 4. The zeroth preset is a temporary "RAM-based" one; it
+changes the current settings, but these go away when switching to another
+preset or power cycling. However, it can be a nice way to test things out
+without disturbing the existing presets.
+
+Unfortunately, the Pd code expects preset files (in a stream-of-ints form,
+ready to send to the device) named in the style shown above. Once you put the
+file(s) in place, open `puredata/set-presets.pd` and press one of the "set
+preset" message boxes (marked 1 to 4 or 0).
 
 ## Akai protocols
 
+In case you _are_ here for the protocols, here are the gory details.
+
 There are several documents on the [Akai Pro downloads
 page](https://www.akaipro.com/downloads) that talk about the basic structure
-of the protocols for any of their devices.
+of the protocols for all of their devices.
 
 There are essentially only two variants: a universal "tell me who you are",
 and a basic _structure_ for model-specific system exclusives.
@@ -28,8 +129,23 @@ sixth and seventh bytes - offsets 5 and 6 - are the manufacturer's ID (47 in
 the case of Akai) and the model ID (4c for the LPD8 mk2; 75 for the original
 LPD8).
 
-Much more interesting are the model-specific system exclusive messages. For
-both of the LPD8 devices, those are the "get preset" and "set preset"
+Much more interesting are the model-specific system exclusive messages. They
+all have exactly the same form:
+
+```
+f0  Begin system exclusive
+47  Akai manufacturer ID
+7f  Broadcast (any connected device with correct model ID)
+ii  Model ID (this is 75 for LPD8 and 4c for LPD8 mk2)
+mm  Message type (in our case, get preset or set preset)
+aa  High 7 bits of payload length
+bb  Low 7 bits of payload length
+..
+..  Payload data
+..
+f7  End system exclusive
+
+For both of the LPD8 devices, those are the "get preset" and "set preset"
 messages. This is what the next sections will concentrate on, starting with
 the newer device, the LPD8 mk2.
 
