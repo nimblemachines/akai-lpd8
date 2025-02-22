@@ -56,9 +56,6 @@ This is probably the order you will want to use them in. `input-test` is great
 for testing that Pd is getting input. You can see which channels the LPD8 is
 using, which note or controller is being used by a pad or knob, etc.
 
-`sysex-in-experiments` should perhaps be renamed, since it is past the point
-of experiments.
-
 `get-presets` does what it says. If you press the message boxes numbered
 1 through 4, where it says "get preset #" in the upper-right of the patch, it
 will request each patch from the device and store it in a file. The patch
@@ -121,7 +118,7 @@ introduction to system exclusives:
 number is granted to manufacturers of MIDI instruments by the MMA or JMSC. By
 agreement between the MMA and JMSC when an ID number is given, the Exclusive
 format which is used under that ID number must be published within one year.
-"Published", in this context, means not only utilizing the format, but also
+_Published_, in this context, means not only utilizing the format, but also
 printing the information in the product's owner's manual and/or technical
 materials published by the manufacturer. This is consistent with one of the
 fundamental purposes of MIDI, which is to publicize information and foster
@@ -150,10 +147,6 @@ yy  Low 7 bits of payload length
 ..
 f7  End system exclusive
 ```
-
-For both of the LPD8 devices, those are the "get preset" and "set preset"
-messages. This is what the next sections will concentrate on, starting with
-the newer device, the LPD8 mk2.
 
 ### LPD8 mk2 communication protocol
 
@@ -241,8 +234,7 @@ I need to make a few comments about program changes.
 Pd's `pgmin` object outputs 1 when it receives a program change 00 MIDI
 message. In one place, the MIDI spec says: "Numbering should begin with 00H
 and increment sequentially." Elsewhere it says: "As with program numbers,
-banks begin counting from 1. Thus the actual bank number will be (MIDI value
-+ 1)."
+banks begin counting from 1. Thus the actual bank number will be (MIDI value + 1)."
 
 I'm following Pd's lead - and the second MIDI spec comment - in this: in the
 Lua version of a preset, "program = 1" will cause a program change message
