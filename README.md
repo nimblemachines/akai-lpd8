@@ -34,21 +34,22 @@ I had to mess around to make the interface something other than unreadably
 tiny, but I got it working, plugged in the LDP8, and was quickly seeing MIDI
 when using Pd's "Test audio and MIDI" patch.
 
-Within a day of messing around I was able to send a sysex message to the
-device and read one of the presets. After a second day I managed to send a sysex
-to _set_ a preset. On the third day I wrote some Lua code to convert between
-numeric and human-readable formats.
+I had three tasks:
+
+* using Pd, send a sysex message to the device to read a preset;
+* using Pd, send a sysex message to _set_ a preset;
+* write Lua code to convert presets between numeric and human-readable formats.
 
 The tools are simple, perhaps a bit primitive, but eminently useful. And,
 after all, this isn't something you do every day. You figure out how you
-intend to use the device, you write a few presets, program them, and then
-forget about it.
+intend to use the device, you write a few presets, send them to the device to
+program it, and then forget about it.
 
 The Pd code lives in the `puredata/` subdirectory, and consists of three patch
 files:
 
 * `puredata/input-test.pd`
-* `puredata/sysex-in-experiments.pd`
+* `puredata/get-presets.pd`
 * `puredata/set-presets.pd`
 
 This is probably the order you will want to use them in. `input-test` is great
@@ -56,11 +57,13 @@ for testing that Pd is getting input. You can see which channels the LPD8 is
 using, which note or controller is being used by a pad or knob, etc.
 
 `sysex-in-experiments` should perhaps be renamed, since it is past the point
-of experiments. If you press the message boxes numbered 1 through 4, where it
-says "get preset #" in the middle-right of the patch, it will request each
-patch from the device and store it in a file. The patch assumes that this
-project lives directly in your home directory; the destination file for each
-preset is `~/akai-lpd8/lpd8-mk2-get-preset-<n>.txt`.
+of experiments.
+
+`get-presets` does what it says. If you press the message boxes numbered
+1 through 4, where it says "get preset #" in the upper-right of the patch, it
+will request each patch from the device and store it in a file. The patch
+assumes that this project lives directly in your home directory; the
+destination file for each preset is `~/akai-lpd8/lpd8-mk2-get-preset-<n>.txt`.
 
 Each received preset file contains a sysex message, encoded as a series of
 integers. This is also the form consumed by `puredata/set-presets.pd`, which
@@ -106,40 +109,42 @@ ready to send to the device) named in the style shown above. Once you put the
 file(s) in place, open `puredata/set-presets.pd` and press one of the "set
 preset" message boxes (marked 1 to 4 or 0).
 
-## Akai protocols
+## Akai-specific protocols
 
 In case you _are_ here for the protocols, here are the gory details.
 
+According to the original MIDI 1.0 specification, manufacturers are _supposed_
+to publish their system exclusive "formats". Here is what it says, in the
+introduction to system exclusives:
+
+"To avoid conflicts with non-compatible Exclusive messages, a specific ID
+number is granted to manufacturers of MIDI instruments by the MMA or JMSC. By
+agreement between the MMA and JMSC when an ID number is given, the Exclusive
+format which is used under that ID number must be published within one year.
+"Published", in this context, means not only utilizing the format, but also
+printing the information in the product's owner's manual and/or technical
+materials published by the manufacturer. This is consistent with one of the
+fundamental purposes of MIDI, which is to publicize information and foster
+compatibility."
+
 There are several documents on the [Akai Pro downloads
-page](https://www.akaipro.com/downloads) that talk about the basic structure
-of the protocols for all of their devices.
+page](https://www.akaipro.com/downloads) about communication protocols,
+but there is _no_ documentation for either the original LPD8 or the LPD8
+mk2 - only links to download their preset editor software.
 
-There are essentially only two variants: a universal "tell me who you are",
-and a basic _structure_ for model-specific system exclusives.
-
-The first one – who are you? – is the MIDI Machine Control (MMC) "device
-enquiry" message, and is encoded like this:
-
-```
-f0 7e 00 06 01 f7
-```
-
-The details of the response aren't that interesting – with one exception: the
-sixth and seventh bytes – offsets 5 and 6 – are the manufacturer's ID (47 in
-the case of Akai) and the model ID (4c for the LPD8 mk2; 75 for the original
-LPD8).
-
-Much more interesting are the model-specific system exclusive messages. They
-all have exactly the same form:
+However, in [APC Key 25 mk2 Communication
+Protocol](https://cdn.inmusicbrands.com/akai/attachments/APC%20Key%2025%20mk2%20-%20Communication%20Protocol%20-%20v1.1.pdf),
+they document the basic _structure_ of the sysex messages. They all have the
+same form:
 
 ```
 f0  Begin system exclusive
 47  Manufacturer ID (Akai)
-7f  Broadcast (any connected device with correct model ID)
+7f  Broadcast (aka "all call device ID")
 ii  Model ID (this is 75 for LPD8 and 4c for LPD8 mk2)
 mm  Message type (in our case, get preset or set preset)
-aa  High 7 bits of payload length
-bb  Low 7 bits of payload length
+xx  High 7 bits of payload length
+yy  Low 7 bits of payload length
 ..
 ..  Payload data
 ..
@@ -152,6 +157,17 @@ the newer device, the LPD8 mk2.
 
 ### LPD8 mk2 communication protocol
 
+Since the protocol is undocumented, one approach is to "listen in" on Akai's
+preset editor software as it communicates with the device.
+
+Thanks are due to [Stephen Martin](https://github.com/stephensrmmartin) and
+his [lpd8mk2](https://github.com/stephensrmmartin/lpd8mk2) project for doing
+exactly this. See in particular the
+[README](https://github.com/stephensrmmartin/lpd8mk2/blob/master/README.md)
+and [sysex
+capture](https://raw.githubusercontent.com/stephensrmmartin/lpd8mk2/refs/heads/master/docs/sysex_captures.md)
+files.
+
 There are two commands: get preset (03), and set preset (01).
 
 Get preset looks like this:
@@ -159,6 +175,9 @@ Get preset looks like this:
 ```
 f0 47 7f 4c 03 00 01 pp f7
 ```
+
+You can see that this follows the "generic" structure alluded to in the APC
+Key 25 documentation.
 
 The 4c value is the product model number (the LPD8 mk2). pp is the preset
 number. The presets stored in the flash memory are numbered 01 to 04; preset
@@ -184,7 +203,7 @@ The preset data has four parts: global settings (4 bytes), pad settings (8
 pads, 32 bytes each), and knob settings (8 knobs, 4 bytes each).
 
 The preset data consumes 164 bytes. When we include the one-byte preset
-number, the total payload is then 165 bytes. 
+number, the total payload is then 165 bytes.
 
 This means that the payload length that the device sends (and mostly likely
 expects) is actually _wrong_! I'm not sure why the engineers added four to the
@@ -202,15 +221,14 @@ The four bytes of global settings are as follows:
 _toggle_ mode the pad sends a note-on when pressed, and does nothing until the
 pad is released and pressed a second time; the second press sends the
 note-off. This behavior only applies when sending note messages from the pads;
-if you are sending controller or program change messages, the pad is in
+if you are sending control change or program change messages, the pad is in
 _momentary_ mode.
 
 Each pad has the following settings:
 
 * note number (one byte)
 * controller number (one byte)
-* program change number (one byte). It seems that 00 means program 1, 01
-  means program 2, etc. Like channel numbers.
+* program change number (one byte)
 * channel number. 0 to 15 to specify channel 1 to 16, or 16 to use the global
   channel number (which was set by the first byte of the preset data).
 * two RGB values: off (not pressed) and on (pressed). Each RGB value is
@@ -218,21 +236,24 @@ Each pad has the following settings:
 payload length and thus takes _two_ bytes: the first byte contains the 8th
 bit; the second byte contains the low 7 bits.
 
+I need to make a few comments about program changes.
+
+Pd's `pgmin` object outputs 1 when it receives a program change 00 MIDI
+message. In one place, the MIDI spec says: "Numbering should begin with 00H
+and increment sequentially." Elsewhere it says: "As with program numbers,
+banks begin counting from 1. Thus the actual bank number will be (MIDI value
++ 1)."
+
+I'm following Pd's lead - and the second MIDI spec comment - in this: in the
+Lua version of a preset, "program = 1" will cause a program change message
+with a value of 00.
+
 Each knob has the following settings:
 
 * controller number (one byte)
 * channel number (like with the pads, this takes values from 0 to 15 to
   specify a channel, or 16 to specify the global channel).
 * range (two bytes: low, then high)
-
-Thanks are due to [Stephen Martin](https://github.com/stephensrmmartin) and his
-[lpd8mk2](https://github.com/stephensrmmartin/lpd8mk2) project for doing the
-hard work of capturing and documenting the USB traffic between Akai's LPD8 mk2
-editor program and the device. See in particular the
-[README](https://github.com/stephensrmmartin/lpd8mk2/blob/master/README.md)
-and [sysex
-capture](https://raw.githubusercontent.com/stephensrmmartin/lpd8mk2/refs/heads/master/docs/sysex_captures.md)
-files.
 
 ### LPD8 (original) communication protocol
 
@@ -279,3 +300,66 @@ The 00 3a is the data payload length: 58 bytes.
 The set preset is exactly like the get preset, except the 63 is replaced by
 61 and the preset number and preset data is sent to, rather than received
 from, the device. Easy peasy!
+
+## Device inquiry
+
+This is more of a curiosity than anything else, but there is a way of asking
+a MIDI device to identify itself: the Device Inquiry message.
+
+This is a standard system exclusive message, defined in the MIDI 1.0 spec.
+
+```
+f0  Universal System Exclusive Non-real time header
+7e
+ii  Device ID
+06  General Information (sub-ID#1)
+01  Identity Request (sub-ID#2)
+f7  EOX (sysex end)
+```
+
+If ii = 7f then the device should respond regardless of what device ID it is
+set to.
+
+A device which receives the above message would respond as follows:
+
+```
+f0  Universal System Exclusive Non-real time header
+7e
+ii  Device ID
+06  General Information (sub-ID#1)
+02  Identity Reply (sub-ID#2)
+mm  Manufacturers System Exclusive id code
+xx  Device family code (14 bits, LSB first)
+xx
+yy  Device family member code (14 bits, LSB first)
+yy
+ss  Software revision level. Format device specific
+ss
+ss
+ss
+f7  EOX (sysex end)
+```
+
+As a curiosity, I thought I would try this.
+
+The [APC Key 25 mk2 Communication
+Protocol](https://cdn.inmusicbrands.com/akai/attachments/APC%20Key%2025%20mk2%20-%20Communication%20Protocol%20-%20v1.1.pdf)
+document mentioned above also describes a "Device Enquiry" message, which they
+(I think erroneously) say is part of the MMC (MIDI Machine Control) spec. It
+is clearly mentioned in the main MIDI spec.
+
+The MIDI spec suggests an "all call" value (7f) for ii; the APC Key 25
+document says to use 00 for ii. It turns out that both values work.
+
+If you want to try this, open _both_ `puredata/get-presets.pd` and
+`puredata/device-inquiry.pd`, and then you can click on the 0 and 127 message
+boxes at the top of `device-inquiry` to send the messages, then look at
+`get-presets` and the Pd log file to see what the device sent back. Actually,
+the patch also creates a file called `lpd8-mk2-get-id-<something>.txt`. It
+seems like no matter what value of ii we send, we get 00 back.
+
+While the response from the LPD8 mk2 doesn't follow the MIDI spec format
+exactly, it does contain the correct Manufacturer's ID (47) and two byte
+Device Family code (ie, Model ID: 4c, followed by 00).
+
+Since I don't possess one, I was unable to test this with the original LPD8.
